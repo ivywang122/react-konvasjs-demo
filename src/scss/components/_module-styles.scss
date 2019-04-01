@@ -1,0 +1,60 @@
+.DayPickerInput-OverlayWrapper {
+  z-index: 500 !important;
+}
+
+.DayPickerInput{
+  margin-right: 10px;
+}
+
+.DayPicker-Month {
+  table-layout: fixed;
+  width: 100%;
+  font-size: 14px;
+  .DayPicker-Weekday,
+  .DayPicker-Day {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    padding: 0;
+  }
+}
+
+.rc-time-picker-input{
+  font-family: $global-font-family;
+  height: auto;
+  font-size: 14px;
+  padding: 5px 8px;
+  border: 1px solid $lily;
+  background-color: $lily;
+  letter-spacing: $global-letter-spacing;
+  @include border-radius(3px);
+  &:focus {
+    outline: none;
+    border: 1px solid $blue;
+    box-shadow: 0 0 5px 0 rgba($light-blue, .5);
+  }
+}
+
+.rc-time-picker-panel-select{
+  overflow-x: hidden;
+}
+
+.dropzone-style{
+  height: 80px;
+  width: 100%;
+  border: 2px dashed $gray; 
+  @include border-radius(3px);
+  background-color: $lily;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  input{
+    display: none;
+  }
+  .fa-icon{
+    color: $gray;
+    font-size: 30px;
+    margin-left: 20px;
+  }
+}
+

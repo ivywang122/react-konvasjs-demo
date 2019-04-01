@@ -1,0 +1,105 @@
+$col: 12;
+
+@mixin grid($size) {
+  @if ($size == "xs") {
+    @for $i from 1 through $col {
+      .col-#{$i} {
+        width: 100%;
+        position: relative;
+        min-height: 1px;
+        padding: 0 15px;
+        flex: 0 0 ($i / $col) * 100%;
+        max-width: ($i / $col) * 100%;
+      }
+    }
+
+  }@else {
+    @for $i from 1 through $col {
+      .col-#{$size}-#{$i} {
+        width: 100%;
+        position: relative;
+        min-height: 1px;
+        padding: 0 15px;
+        flex: 0 0 ($i / $col) * 100%;
+        max-width: ($i / $col) * 100%;
+      }
+    }
+  }
+}
+
+@mixin container($size) {
+  margin: auto;
+  padding: 0 15px;
+  @if ($size == "xs") {
+    width: 100%;
+  }
+  @else if ($size == "sm") {
+    width: 540px;
+  }
+  @else if ($size == "md") {
+    width: 720px;
+  }
+  @else if ($size == "lg") {
+    width: 960px;
+  }
+  @else if($size == "xl") {
+    width: 1140px;
+  }
+}
+
+@media screen and (max-width: 575px) {
+  @include grid("xs");
+  .container {
+    @include container("xs");
+  }
+}
+
+@media screen and (min-width: 576px) {
+  @include grid("sm");
+  .container {
+    @include container("sm");
+  }
+}
+
+@media screen and (min-width: 768px) {
+  @include grid("md");
+  .container {
+    @include container("md");
+  }
+}
+
+@media screen and (min-width: 992px) {
+  @include grid("lg");
+  .container {
+    @include container("lg");
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  @include grid("xl");
+  .container {
+    @include container("xl");
+  }
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -15px;
+}
+
+.container-fluid {
+  width: 100%;
+  padding: 0 15px;
+  margin: auto;
+}
+
+.no-gutters {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.no-gutters > .col,
+.no-gutters > [class*="col-"] {
+  padding: 0;
+}
