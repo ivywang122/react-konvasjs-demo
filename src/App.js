@@ -1,13 +1,22 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
 import { Stage, Layer, Line, Image, Text } from 'react-konva';
-import Konva from 'konva';
 import classNames from 'classnames';
 import CircleDot from './components/CircleDot';
 import ImgSelectBox from './components/ImgSelectBox';
 import SelectedImage from './components/SelectedImage';
-import { FaMapPin, FaPaintBrush, FaReply, FaShare, FaPalette, FaSave, FaRegImage, FaEraser, FaFont, FaTrashAlt } from 'react-icons/fa';
-
+import {
+  FaMapPin,
+  FaPaintBrush,
+  FaReply,
+  FaShare,
+  FaPalette,
+  FaSave,
+  FaRegImage,
+  FaEraser,
+  FaFont,
+  FaTrashAlt
+} from 'react-icons/fa';
 
 class App extends Component {
   constructor(props) {
@@ -39,52 +48,79 @@ class App extends Component {
       historyStep: 0,
       history: [],
       imgurl: ''
-    }
-    
+    };
   }
- 
 
   componentDidMount() {
-
+    let canvas = this.stageRef.getStage().content.children[0];
+    console.log(canvas);
+    canvas.setAttribute(
+      'style',
+      'background: url(https://fakeimg.pl/800x600/121258/FFC039)'
+    );
   }
 
-  componentWillUnmount() {
+  componentWillUnmount() {}
 
-  }
+  // shouldComponentUpdate(newProps, newState) {
+  //   return this.state !== newState
+  // }
 
   render() {
-    const { toolState, dots, isShowImgSelectBox, imgurl, lines, eraseImgs } = this.state;
+    const {
+      toolState,
+      dots,
+      isShowImgSelectBox,
+      imgurl,
+      lines,
+      eraseImgs
+    } = this.state;
     return (
       <div className="App">
-        {isShowImgSelectBox ? <ImgSelectBox onImgSelect={this.onImgSelect} onCloseImgBox={this.onCloseImgBox} /> : null}
-      
+        {isShowImgSelectBox ? (
+          <ImgSelectBox
+            onImgSelect={this.onImgSelect}
+            onCloseImgBox={this.onCloseImgBox}
+          />
+        ) : null}
+
         <StageContainer>
           <div className="frame">
             <TopTools>
               <div className="left">
-                <div className={classNames('icon-wrapper', { 'active': toolState === 0 })}
+                <div
+                  className={classNames('icon-wrapper', {
+                    active: toolState === 0
+                  })}
                   onClick={() => this.onToolChange(0)}
-                  > 
+                >
                   <FaMapPin />
                 </div>
-                <div className={classNames('icon-wrapper', { 'active': toolState === 1 })}
+                <div
+                  className={classNames('icon-wrapper', {
+                    active: toolState === 1
+                  })}
                   onClick={() => this.onToolChange(1)}
-                  >
+                >
                   <FaPaintBrush />
                 </div>
-                <div className={classNames('icon-wrapper', { 'active': toolState === 2 })}
+                <div
+                  className={classNames('icon-wrapper', {
+                    active: toolState === 2
+                  })}
                   onClick={() => this.onToolChange(2)}
-                  >
+                >
                   <FaFont />
                 </div>
-                <div className='icon-wrapper'
-                  onClick={this.onShowImgBox}
-                  >
+                <div className="icon-wrapper" onClick={this.onShowImgBox}>
                   <FaRegImage />
                 </div>
-                <div className={classNames('icon-wrapper', { 'active': toolState === 3 })}
+                <div
+                  className={classNames('icon-wrapper', {
+                    active: toolState === 3
+                  })}
                   onClick={() => this.onToolChange(3)}
-                  >                
+                >
                   <FaPalette />
                 </div>
               </div>
@@ -92,9 +128,12 @@ class App extends Component {
                 <div className="icon-wrapper" onClick={this.onAllClear}>
                   <FaTrashAlt />
                 </div>
-                <div className={classNames('icon-wrapper', { 'active': toolState === 4 })}
+                <div
+                  className={classNames('icon-wrapper', {
+                    active: toolState === 4
+                  })}
                   onClick={() => this.onToolChange(4)}
-                  >
+                >
                   <FaEraser />
                 </div>
                 <div className="icon-wrapper" onClick={this.onRedo}>
@@ -107,26 +146,54 @@ class App extends Component {
                   <FaSave />
                 </div>
               </div>
-              
-              
             </TopTools>
             <Stage
-              ref={node => { this.stageRef = node }} 
-              width={800} height={600}
+              ref={node => {
+                this.stageRef = node;
+              }}
+              width={800}
+              height={600}
               onMouseDown={this.onMouseDown}
               onMouseMove={this.onMouseMove}
               onMouseUp={this.onMouseUp}
-              onClick={this.onStageClick}>
+              onClick={this.onStageClick}
+            >
               <Layer>
-                {imgurl !== '' ? <SelectedImage posX={0} posY={0} imgurl={imgurl} /> : null}
-                
-                {dots.length > 0? dots.map((dot, index) => { return this.renderDots(dot, index)} ) : null}
-                {lines.length > 0 ? lines.map((line, index) => (
-                  <Line key={'line' + index} lineJoin="round" lineCap="round" strokeWidth={5} points={line} stroke="gold" />
-                )) : null}
-                {eraseImgs.length > 0 ? eraseImgs.map((img, index) => (
-                  <Image key={'img' + index} ref={node => (this.imageRef = node)} x={img.x} y={img.y} width={10} height={10} stroke="blue" fill="red" globalCompositeOperation="destination-out" />
-                )) : null}
+                {imgurl !== '' ? (
+                  <SelectedImage posX={0} posY={0} imgurl={imgurl} />
+                ) : null}
+                {dots.length > 0
+                  ? dots.map((dot, index) => {
+                      return this.renderDots(dot, index);
+                    })
+                  : null}
+                {lines.length > 0
+                  ? lines.map((line, index) => (
+                      <Line
+                        key={'line' + index}
+                        lineJoin="round"
+                        lineCap="round"
+                        strokeWidth={5}
+                        points={line}
+                        stroke="gold"
+                      />
+                    ))
+                  : null}
+                {eraseImgs.length > 0
+                  ? eraseImgs.map((img, index) => (
+                      <Image
+                        key={'img' + index}
+                        ref={node => (this.imageRef = node)}
+                        x={img.x}
+                        y={img.y}
+                        width={10}
+                        height={10}
+                        stroke="blue"
+                        fill="red"
+                        globalCompositeOperation="destination-out"
+                      />
+                    ))
+                  : null}
               </Layer>
             </Stage>
           </div>
@@ -136,17 +203,25 @@ class App extends Component {
   }
 
   _renderDots(dot, index) {
-    return <CircleDot key={'dot-'+index} posX={dot.posX} posY={dot.posY} />
+    // console.log(index, dot.posX)
+    return <CircleDot key={'dot-' + index} posX={dot.posX} posY={dot.posY} />;
   }
-    
+
   _onMouseMove(ele) {
-    let { toolState, isDrawing, isErasing, lines, eraseImgs } = this.state;
+    let {
+      toolState,
+      isDrawing,
+      isErasing,
+      dots,
+      lines,
+      eraseImgs,
+      posX,
+      posY
+    } = this.state;
     const stage = this.stageRef.getStage();
     const point = stage.getPointerPosition();
 
-    if (toolState === 0) {
-      this.setState({ posX: ele.evt.offsetX, posY: ele.evt.offsetY })
-    } else if (toolState === 1) {
+    if (toolState === 1) {
       if (!isDrawing) {
         return;
       }
@@ -155,65 +230,59 @@ class App extends Component {
       lines.splice(lines.length - 1, 1, lastLine);
       this.setState({ lines: lines.concat() });
     } else if (toolState === 4) {
-      if(!isErasing) {
+      if (!isErasing) {
         return;
       }
-
-      let imgPoints = { x: point.x, y: point.y }
-      eraseImgs = [...eraseImgs, imgPoints];
-      this.setState({ eraseImgs })
+      let ersPos = { x: point.x, y: point.y };
+      eraseImgs = [...eraseImgs, ersPos];
+      this.setState({ eraseImgs });
     }
   }
 
   _onMouseDown() {
     let { toolState, lines } = this.state;
-    if(toolState === 1) {
-      this.setState({ isDrawing: true, lines: [...lines, []] })
+    if (toolState === 1) {
+      this.setState({ isDrawing: true, lines: [...lines, []] });
     } else if (toolState === 4) {
-      this.setState({ isErasing: true })
+      this.setState({ isErasing: true });
     }
   }
 
   _onMouseUp() {
-    this.setState({ isDrawing: false, isErasing: false })
+    this.setState({ isDrawing: false, isErasing: false });
   }
 
   _onToolChange(type) {
-    this.setState({ toolState: type })
+    this.setState({ toolState: type });
   }
 
   _onImgSelect(imgurl) {
     this.setState({ imgurl, isShowImgSelectBox: false });
   }
 
-  _onStageClick() {
-    let { toolState, posX, posY, dots } = this.state;
+  _onStageClick(ele) {
+    let { toolState, dots } = this.state;
     let dot = {};
     if (toolState === 0) {
-      dot = { posX: posX, posY: posY };
+      dot = { posX: ele.evt.offsetX, posY: ele.evt.offsetY };
       dots = [...dots, dot];
-
     }
 
     this.setState({ dots });
   }
 
-  _onUndo() {
+  _onUndo() {}
 
-  }
-
-  _onRedo() {
-
-  }
+  _onRedo() {}
 
   _onAllClear() {
-    this.setState({ dots: [], lines: [], eraseImgs: [] })
+    this.setState({ dots: [], lines: [], eraseImgs: [] });
   }
 
   _onShowImgBox() {
     this.setState({ isShowImgSelectBox: true });
   }
-  
+
   _onCloseImgBox() {
     this.setState({ isShowImgSelectBox: false });
   }
@@ -224,10 +293,8 @@ class App extends Component {
     this.downloadURI(dataURL, 'stage.png');
   }
 
- 
-
   downloadURI(url, name) {
-    let link = document.createElement("a");
+    let link = document.createElement('a');
     link.download = name;
     link.href = url;
     document.body.appendChild(link);
@@ -243,9 +310,9 @@ const StageContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  .frame{
+  .frame {
     background-color: #fff;
-    box-shadow: 0 12px 40px 0 rgba(0,0,0,.5);
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
   }
 `;
 
@@ -258,17 +325,17 @@ const TopTools = styled.div`
   border-bottom: 1px solid #e0e0e0;
   display: flex;
   justify-content: space-between;
-  .icon-wrapper{
+  .icon-wrapper {
     display: inline-block;
     text-align: center;
     line-height: 40px;
     height: 40px;
     width: 40px;
     cursor: pointer;
-    &.active, &:hover{
+    &.active,
+    &:hover {
       background-color: #ddd;
     }
-    
   }
 `;
 
