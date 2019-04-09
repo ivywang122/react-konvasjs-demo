@@ -1,13 +1,13 @@
-import React, { Component } from 'react'
+import React, { Component } from 'react';
 import { Image } from 'react-konva';
 class SelectedImage extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.handleLoad = this._handleLoad.bind(this);
 
     this.state = {
       imgobj: null
-    }
+    };
   }
   componentDidMount() {
     this.loadImage();
@@ -17,7 +17,7 @@ class SelectedImage extends Component {
     this.imgobj.removeEventListener('load', this.handleLoad);
   }
   componentDidUpdate(prevProp, prevState) {
-    if(prevProp.imgurl !== this.props.imgurl) {
+    if (prevProp.imgurl !== this.props.imgurl) {
       this.loadImage();
     }
   }
@@ -25,11 +25,12 @@ class SelectedImage extends Component {
   //   return this.state !== newState
   // }
   render() {
-    return(
+    return (
       <Image
         x={this.props.posX}
         y={this.props.posY}
         image={this.imgobj}
+        opacity={this.props.opacity}
         ref={node => {
           this.imageNode = node;
         }}
@@ -49,4 +50,4 @@ class SelectedImage extends Component {
     // console.log(this.imgobj)
   }
 }
-export default SelectedImage
+export default SelectedImage;

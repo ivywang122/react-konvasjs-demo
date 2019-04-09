@@ -34,11 +34,13 @@ class App extends Component {
     this.onCloseImgBox = this._onCloseImgBox.bind(this);
     this.onDownload = this._onDownload.bind(this);
     this.onAllClear = this._onAllClear.bind(this);
+    this.downloadURI = this._downloadURI.bind(this);
 
     this.state = {
       lines: [],
       eraseImgs: [],
       dots: [],
+      opacity: 0,
       posX: 0,
       posY: 0,
       isDrawing: false,
@@ -52,12 +54,12 @@ class App extends Component {
   }
 
   componentDidMount() {
-    let canvas = this.stageRef.getStage().content.children[0];
-    console.log(canvas);
-    canvas.setAttribute(
-      'style',
-      'background: url(https://fakeimg.pl/800x600/121258/FFC039)'
-    );
+    // let canvas = this.stageRef.getStage().content.children[0];
+    // console.log(canvas);
+    // canvas.setAttribute(
+    //   'style',
+    //   'background: url(https://fakeimg.pl/800x600/121258/FFC039)'
+    // );
   }
 
   componentWillUnmount() {}
@@ -72,6 +74,7 @@ class App extends Component {
       dots,
       isShowImgSelectBox,
       imgurl,
+      opacity,
       lines,
       eraseImgs
     } = this.state;
@@ -160,7 +163,12 @@ class App extends Component {
             >
               <Layer>
                 {imgurl !== '' ? (
-                  <SelectedImage posX={0} posY={0} imgurl={imgurl} />
+                  <SelectedImage
+                    posX={0}
+                    posY={0}
+                    imgurl={imgurl}
+                    opacity={opacity}
+                  />
                 ) : null}
                 {dots.length > 0
                   ? dots.map((dot, index) => {
@@ -257,7 +265,10 @@ class App extends Component {
   }
 
   _onImgSelect(imgurl) {
-    this.setState({ imgurl, isShowImgSelectBox: false });
+    this.setState({ imgurl, isShowImgSelectBox: false }, () => {
+      const canvas = this.stageRef.getStage().content.children[0];
+      canvas.setAttribute('style', 'background: url(' + imgurl + ')');
+    });
   }
 
   _onStageClick(ele) {
@@ -288,18 +299,23 @@ class App extends Component {
   }
 
   _onDownload() {
-    let dataURL = this.stageRef.getStage().toDataURL();
+    this.setState({ opacity: 1 }, () => {
+      setTimeout(() => {
+        let dataURL = this.stageRef.getStage().toDataURL();
+        this.downloadURI(dataURL, 'stage.png');
+      }, 100);
+    });
     // console.log(dataURL)
-    this.downloadURI(dataURL, 'stage.png');
   }
 
-  downloadURI(url, name) {
+  _downloadURI(url, name) {
     let link = document.createElement('a');
     link.download = name;
     link.href = url;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    this.setState({ opacity: 0 });
   }
 }
 
