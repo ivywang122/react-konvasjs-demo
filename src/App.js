@@ -28,7 +28,7 @@ class App extends Component {
 
     this.state = {
       lines: [],
-      eraseLines: [],
+      eraseImgs: [],
       dots: [],
       posX: 0,
       posY: 0,
@@ -53,7 +53,7 @@ class App extends Component {
   }
 
   render() {
-    const { toolState, dots, isShowImgSelectBox, imgurl, lines } = this.state;
+    const { toolState, dots, isShowImgSelectBox, imgurl, lines, eraseImgs } = this.state;
     return (
       <div className="App">
         {isShowImgSelectBox ? <ImgSelectBox onImgSelect={this.onImgSelect} onCloseImgBox={this.onCloseImgBox} /> : null}
@@ -119,11 +119,14 @@ class App extends Component {
               onClick={this.onStageClick}>
               <Layer>
                 {imgurl !== '' ? <SelectedImage posX={0} posY={0} imgurl={imgurl} /> : null}
+                
                 {dots.length > 0? dots.map((dot, index) => { return this.renderDots(dot, index)} ) : null}
                 {lines.length > 0 ? lines.map((line, index) => (
                   <Line key={'line' + index} lineJoin="round" lineCap="round" strokeWidth={5} points={line} stroke="gold" />
                 )) : null}
-                
+                {eraseImgs.length > 0 ? eraseImgs.map((img, index) => (
+                  <Image key={'img' + index} ref={node => (this.imageRef = node)} x={img.x} y={img.y} width={10} height={10} stroke="blue" fill="red" globalCompositeOperation="destination-out" />
+                )) : null}
               </Layer>
             </Stage>
           </div>
@@ -137,7 +140,7 @@ class App extends Component {
   }
     
   _onMouseMove(ele) {
-    let { toolState, isDrawing, isErasing, lines } = this.state;
+    let { toolState, isDrawing, isErasing, lines, eraseImgs } = this.state;
     const stage = this.stageRef.getStage();
     const point = stage.getPointerPosition();
 
@@ -155,7 +158,10 @@ class App extends Component {
       if(!isErasing) {
         return;
       }
-     
+
+      let imgPoints = { x: point.x, y: point.y }
+      eraseImgs = [...eraseImgs, imgPoints];
+      this.setState({ eraseImgs })
     }
   }
 
@@ -201,7 +207,7 @@ class App extends Component {
   }
 
   _onAllClear() {
-    this.setState({ dots: [], lines: [] })
+    this.setState({ dots: [], lines: [], eraseImgs: [] })
   }
 
   _onShowImgBox() {
