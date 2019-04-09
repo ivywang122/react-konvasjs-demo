@@ -1,16 +1,22 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
-import { Stage, Layer, Rect, Text } from 'react-konva';
+import { Stage, Layer, Line, Image, Text } from 'react-konva';
 import Konva from 'konva';
 import classNames from 'classnames';
 import CircleDot from './components/CircleDot';
 import ImgSelectBox from './components/ImgSelectBox';
-import { FaMapPin, FaPaintBrush, FaReply, FaShare, FaPalette, FaSave, FaRegImage, FaEraser } from 'react-icons/fa';
+import SelectedImage from './components/SelectedImage';
+import { FaMapPin, FaPaintBrush, FaReply, FaShare, FaPalette, FaSave, FaRegImage, FaEraser, FaFont, FaTrashAlt } from 'react-icons/fa';
+
 
 class App extends Component {
   constructor(props) {
     super(props);
+    this.onMouseDown = this._onMouseDown.bind(this);
     this.onMouseMove = this._onMouseMove.bind(this);
+    this.onMouseUp = this._onMouseUp.bind(this);
+    this.onToolChange = this._onToolChange.bind(this);
+    this.onImgSelect = this._onImgSelect.bind(this);
     this.onStageClick = this._onStageClick.bind(this);
     this.renderDots = this._renderDots.bind(this);
     this.onUndo = this._onUndo.bind(this);
@@ -18,15 +24,21 @@ class App extends Component {
     this.onShowImgBox = this._onShowImgBox.bind(this);
     this.onCloseImgBox = this._onCloseImgBox.bind(this);
     this.onDownload = this._onDownload.bind(this);
+    this.onAllClear = this._onAllClear.bind(this);
 
     this.state = {
-      toolState: 0, // 0.點點 1.筆刷 2.放圖片 3.選色
+      lines: [],
+      eraseLines: [],
+      dots: [],
       posX: 0,
       posY: 0,
-      dots: [],
+      isDrawing: false,
+      isErasing: false,
+      toolState: 0, // 0.點點 1.筆刷 2.文字 3.選色 4.橡皮擦
+      isShowImgSelectBox: false,
       historyStep: 0,
       history: [],
-      isShowImgSelectBox: true
+      imgurl: ''
     }
     
   }
@@ -36,34 +48,53 @@ class App extends Component {
 
   }
 
+  componentWillUnmount() {
+
+  }
+
   render() {
-    const { toolState, dots, isShowImgSelectBox } = this.state;
+    const { toolState, dots, isShowImgSelectBox, imgurl, lines } = this.state;
     return (
       <div className="App">
-        {isShowImgSelectBox ? <ImgSelectBox onCloseImgBox={this.onCloseImgBox} /> : null}
+        {isShowImgSelectBox ? <ImgSelectBox onImgSelect={this.onImgSelect} onCloseImgBox={this.onCloseImgBox} /> : null}
       
         <StageContainer>
           <div className="frame">
             <TopTools>
               <div className="left">
-                <div className={classNames('icon-wrapper', { 'active': toolState === 0 })}>
+                <div className={classNames('icon-wrapper', { 'active': toolState === 0 })}
+                  onClick={() => this.onToolChange(0)}
+                  > 
                   <FaMapPin />
                 </div>
-                <div className={classNames('icon-wrapper', { 'active': toolState === 1 })}>
+                <div className={classNames('icon-wrapper', { 'active': toolState === 1 })}
+                  onClick={() => this.onToolChange(1)}
+                  >
                   <FaPaintBrush />
                 </div>
-                <div 
-                  className={classNames('icon-wrapper', { 'active': toolState === 2 })}
+                <div className={classNames('icon-wrapper', { 'active': toolState === 2 })}
+                  onClick={() => this.onToolChange(2)}
+                  >
+                  <FaFont />
+                </div>
+                <div className='icon-wrapper'
                   onClick={this.onShowImgBox}
                   >
                   <FaRegImage />
                 </div>
-                <div className={classNames('icon-wrapper', { 'active': toolState === 3 })}>                
+                <div className={classNames('icon-wrapper', { 'active': toolState === 3 })}
+                  onClick={() => this.onToolChange(3)}
+                  >                
                   <FaPalette />
                 </div>
               </div>
               <div className="right">
-                <div className="icon-wrapper">
+                <div className="icon-wrapper" onClick={this.onAllClear}>
+                  <FaTrashAlt />
+                </div>
+                <div className={classNames('icon-wrapper', { 'active': toolState === 4 })}
+                  onClick={() => this.onToolChange(4)}
+                  >
                   <FaEraser />
                 </div>
                 <div className="icon-wrapper" onClick={this.onRedo}>
@@ -79,9 +110,20 @@ class App extends Component {
               
               
             </TopTools>
-            <Stage ref={node => { this.stageRef = node }} width={800} height={600} onMouseMove={this.onMouseMove} onClick={this.onStageClick}>
+            <Stage
+              ref={node => { this.stageRef = node }} 
+              width={800} height={600}
+              onMouseDown={this.onMouseDown}
+              onMouseMove={this.onMouseMove}
+              onMouseUp={this.onMouseUp}
+              onClick={this.onStageClick}>
               <Layer>
+                {imgurl !== '' ? <SelectedImage posX={0} posY={0} imgurl={imgurl} /> : null}
                 {dots.length > 0? dots.map((dot, index) => { return this.renderDots(dot, index)} ) : null}
+                {lines.length > 0 ? lines.map((line, index) => (
+                  <Line key={'line' + index} lineJoin="round" lineCap="round" strokeWidth={5} points={line} stroke="gold" />
+                )) : null}
+                
               </Layer>
             </Stage>
           </div>
@@ -95,10 +137,47 @@ class App extends Component {
   }
     
   _onMouseMove(ele) {
-    let { toolState } = this.state;
+    let { toolState, isDrawing, isErasing, lines } = this.state;
+    const stage = this.stageRef.getStage();
+    const point = stage.getPointerPosition();
+
     if (toolState === 0) {
       this.setState({ posX: ele.evt.offsetX, posY: ele.evt.offsetY })
+    } else if (toolState === 1) {
+      if (!isDrawing) {
+        return;
+      }
+      let lastLine = lines[lines.length - 1];
+      lastLine = lastLine.concat([point.x, point.y]);
+      lines.splice(lines.length - 1, 1, lastLine);
+      this.setState({ lines: lines.concat() });
+    } else if (toolState === 4) {
+      if(!isErasing) {
+        return;
+      }
+     
     }
+  }
+
+  _onMouseDown() {
+    let { toolState, lines } = this.state;
+    if(toolState === 1) {
+      this.setState({ isDrawing: true, lines: [...lines, []] })
+    } else if (toolState === 4) {
+      this.setState({ isErasing: true })
+    }
+  }
+
+  _onMouseUp() {
+    this.setState({ isDrawing: false, isErasing: false })
+  }
+
+  _onToolChange(type) {
+    this.setState({ toolState: type })
+  }
+
+  _onImgSelect(imgurl) {
+    this.setState({ imgurl, isShowImgSelectBox: false });
   }
 
   _onStageClick() {
@@ -107,6 +186,7 @@ class App extends Component {
     if (toolState === 0) {
       dot = { posX: posX, posY: posY };
       dots = [...dots, dot];
+
     }
 
     this.setState({ dots });
@@ -114,11 +194,14 @@ class App extends Component {
 
   _onUndo() {
 
-
   }
 
   _onRedo() {
 
+  }
+
+  _onAllClear() {
+    this.setState({ dots: [], lines: [] })
   }
 
   _onShowImgBox() {
@@ -131,8 +214,11 @@ class App extends Component {
 
   _onDownload() {
     let dataURL = this.stageRef.getStage().toDataURL();
+    // console.log(dataURL)
     this.downloadURI(dataURL, 'stage.png');
   }
+
+ 
 
   downloadURI(url, name) {
     let link = document.createElement("a");
