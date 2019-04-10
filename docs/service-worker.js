@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/react-konvasjs-demo/precache-manifest.b9264864e86944a6a796fc6f2c2ac287.js"
+  "/react-konvasjs-demo/precache-manifest.c0d8df488ab9e7fe2d0749f384d77c2e.js"
 );
 
 workbox.clientsClaim();

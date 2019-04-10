@@ -1,13 +1,13 @@
 {
-  "main.css": "/react-konvasjs-demo/static/css/main.d0295a92.chunk.css",
-  "main.js": "/react-konvasjs-demo/static/js/main.6117633f.chunk.js",
-  "main.js.map": "/react-konvasjs-demo/static/js/main.6117633f.chunk.js.map",
+  "main.css": "/react-konvasjs-demo/static/css/main.d7808066.chunk.css",
+  "main.js": "/react-konvasjs-demo/static/js/main.59e5405c.chunk.js",
+  "main.js.map": "/react-konvasjs-demo/static/js/main.59e5405c.chunk.js.map",
   "runtime~main.js": "/react-konvasjs-demo/static/js/runtime~main.07cb2f8d.js",
   "runtime~main.js.map": "/react-konvasjs-demo/static/js/runtime~main.07cb2f8d.js.map",
-  "static/js/2.2c6284ae.chunk.js": "/react-konvasjs-demo/static/js/2.2c6284ae.chunk.js",
-  "static/js/2.2c6284ae.chunk.js.map": "/react-konvasjs-demo/static/js/2.2c6284ae.chunk.js.map",
+  "static/js/2.e5ecf651.chunk.js": "/react-konvasjs-demo/static/js/2.e5ecf651.chunk.js",
+  "static/js/2.e5ecf651.chunk.js.map": "/react-konvasjs-demo/static/js/2.e5ecf651.chunk.js.map",
   "index.html": "/react-konvasjs-demo/index.html",
-  "precache-manifest.b9264864e86944a6a796fc6f2c2ac287.js": "/react-konvasjs-demo/precache-manifest.b9264864e86944a6a796fc6f2c2ac287.js",
+  "precache-manifest.c0d8df488ab9e7fe2d0749f384d77c2e.js": "/react-konvasjs-demo/precache-manifest.c0d8df488ab9e7fe2d0749f384d77c2e.js",
   "service-worker.js": "/react-konvasjs-demo/service-worker.js",
-  "static/css/main.d0295a92.chunk.css.map": "/react-konvasjs-demo/static/css/main.d0295a92.chunk.css.map"
+  "static/css/main.d7808066.chunk.css.map": "/react-konvasjs-demo/static/css/main.d7808066.chunk.css.map"
 }
