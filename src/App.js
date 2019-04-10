@@ -50,7 +50,9 @@ class App extends Component {
       isShowImgSelectBox: false,
       historyStep: 0,
       history: [],
-      imgurl: ''
+      imgurl: '',
+      isBgImg: false,
+      imgId: undefined
     };
   }
 
@@ -254,10 +256,25 @@ class App extends Component {
   }
 
   _onImgSelect(imgurl) {
-    this.setState({ imgurl, isShowImgSelectBox: false }, () => {
-      const canvas = this.layerRef.getCanvas()._canvas;
-      canvas.setAttribute('style', 'background: url(' + imgurl + ')');
-    });
+    if (this.layerRef.getChildren()[0]) {
+      // this.layerRef.getChildren()[0].destroy();
+      // this.layerRef.draw();
+      let imgs = this.layerRef.getChildren(n => n.getClassName() === 'Image');
+      for (let i = 0; i < imgs.length; i++) {
+        if (imgs[i]._id === this.state.imgId) {
+          imgs[i].destroy();
+          this.layerRef.draw();
+          break;
+        }
+      }
+
+      // console.log(this.layerRef.getChildren(n => n.getClassName() === 'Image'))
+    }
+
+    const canvas = this.layerRef.getCanvas()._canvas;
+    canvas.setAttribute('style', 'background: url(' + imgurl + ')');
+
+    this.setState({ imgurl, isShowImgSelectBox: false, isBgImg: true });
   }
 
   _onStageClick(ele) {
@@ -288,33 +305,41 @@ class App extends Component {
   }
 
   _onDownload() {
-    let { imgurl } = this.state;
-    let imageObj = new window.Image();
-    // -- images from other domain -- //
-    imageObj.setAttribute('crossOrigin', 'anonymous');
-    imageObj.src = imgurl;
-    imageObj.width = 800;
-    imageObj.height = 600;
+    let { imgurl, isBgImg } = this.state;
+    if (isBgImg) {
+      let imageObj = new window.Image();
+      // -- images from other domain -- //
+      imageObj.setAttribute('crossOrigin', 'anonymous');
+      imageObj.src = imgurl;
+      imageObj.width = 800;
+      imageObj.height = 600;
 
-    imageObj.onload = () => {
-      let bgImage = new Konva.Image({
-        x: 0,
-        y: 0,
-        image: imageObj,
-        opacity: 1,
-        globalCompositeOperation: 'destination-over'
-      });
+      imageObj.onload = () => {
+        let bgImage = new Konva.Image({
+          x: 0,
+          y: 0,
+          image: imageObj,
+          opacity: 1,
+          globalCompositeOperation: 'destination-over'
+        });
 
-      this.layerRef.add(bgImage);
-      this.layerRef.draw();
+        // console.log(bgImage._id)
 
-      this.setState({ opacity: 1 }, () => {
+        this.layerRef.add(bgImage);
+        this.layerRef.draw();
+        // console.log(this.layerRef.getChildren()[0]._id)
+        this.setState({ imgId: bgImage._id });
         setTimeout(() => {
           let dataURL = this.stageRef.toDataURL();
           this.downloadURI(dataURL, 'stage.png');
         }, 100);
-      });
-    };
+      };
+    } else {
+      setTimeout(() => {
+        let dataURL = this.stageRef.toDataURL();
+        this.downloadURI(dataURL, 'stage.png');
+      }, 100);
+    }
   }
 
   _downloadURI(url, name) {
@@ -324,7 +349,6 @@ class App extends Component {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    this.setState({ opacity: 0 });
   }
 }
 
