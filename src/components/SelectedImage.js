@@ -47,7 +47,6 @@ class SelectedImage extends Component {
     this.imgobj.setAttribute('crossOrigin', 'anonymous');
     this.imgobj.src = this.props.imgurl;
     this.imgobj.addEventListener('load', this.handleLoad);
-    // console.log(this.imgobj)
   }
 }
 export default SelectedImage;

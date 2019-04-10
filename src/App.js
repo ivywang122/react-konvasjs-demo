@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import styled from 'styled-components';
+import Konva from 'konva';
 import { Stage, Layer, Line, Image, Text } from 'react-konva';
 import classNames from 'classnames';
 import CircleDot from './components/CircleDot';
 import ImgSelectBox from './components/ImgSelectBox';
-import SelectedImage from './components/SelectedImage';
+
 import {
   FaMapPin,
   FaPaintBrush,
@@ -40,7 +41,7 @@ class App extends Component {
       lines: [],
       eraseImgs: [],
       dots: [],
-      opacity: 0,
+      opacity: 1,
       posX: 0,
       posY: 0,
       isDrawing: false,
@@ -53,14 +54,7 @@ class App extends Component {
     };
   }
 
-  componentDidMount() {
-    // let canvas = this.stageRef.getStage().content.children[0];
-    // console.log(canvas);
-    // canvas.setAttribute(
-    //   'style',
-    //   'background: url(https://fakeimg.pl/800x600/121258/FFC039)'
-    // );
-  }
+  componentDidMount() {}
 
   componentWillUnmount() {}
 
@@ -73,8 +67,6 @@ class App extends Component {
       toolState,
       dots,
       isShowImgSelectBox,
-      imgurl,
-      opacity,
       lines,
       eraseImgs
     } = this.state;
@@ -161,20 +153,26 @@ class App extends Component {
               onMouseUp={this.onMouseUp}
               onClick={this.onStageClick}
             >
-              <Layer>
-                {imgurl !== '' ? (
+              <Layer
+                ref={node => {
+                  this.layerRef = node;
+                }}
+              >
+                {/* {imgurl !== '' ? (
                   <SelectedImage
                     posX={0}
                     posY={0}
                     imgurl={imgurl}
                     opacity={opacity}
                   />
-                ) : null}
+                ) : null} */}
+
                 {dots.length > 0
                   ? dots.map((dot, index) => {
                       return this.renderDots(dot, index);
                     })
                   : null}
+
                 {lines.length > 0
                   ? lines.map((line, index) => (
                       <Line
@@ -187,6 +185,7 @@ class App extends Component {
                       />
                     ))
                   : null}
+
                 {eraseImgs.length > 0
                   ? eraseImgs.map((img, index) => (
                       <Image
@@ -211,21 +210,11 @@ class App extends Component {
   }
 
   _renderDots(dot, index) {
-    // console.log(index, dot.posX)
     return <CircleDot key={'dot-' + index} posX={dot.posX} posY={dot.posY} />;
   }
 
   _onMouseMove(ele) {
-    let {
-      toolState,
-      isDrawing,
-      isErasing,
-      dots,
-      lines,
-      eraseImgs,
-      posX,
-      posY
-    } = this.state;
+    let { toolState, isDrawing, isErasing, lines, eraseImgs } = this.state;
     const stage = this.stageRef.getStage();
     const point = stage.getPointerPosition();
 
@@ -266,7 +255,7 @@ class App extends Component {
 
   _onImgSelect(imgurl) {
     this.setState({ imgurl, isShowImgSelectBox: false }, () => {
-      const canvas = this.stageRef.getStage().content.children[0];
+      const canvas = this.layerRef.getCanvas()._canvas;
       canvas.setAttribute('style', 'background: url(' + imgurl + ')');
     });
   }
@@ -299,13 +288,33 @@ class App extends Component {
   }
 
   _onDownload() {
-    this.setState({ opacity: 1 }, () => {
-      setTimeout(() => {
-        let dataURL = this.stageRef.getStage().toDataURL();
-        this.downloadURI(dataURL, 'stage.png');
-      }, 100);
-    });
-    // console.log(dataURL)
+    let { imgurl } = this.state;
+    let imageObj = new window.Image();
+    // -- images from other domain -- //
+    imageObj.setAttribute('crossOrigin', 'anonymous');
+    imageObj.src = imgurl;
+    imageObj.width = 800;
+    imageObj.height = 600;
+
+    imageObj.onload = () => {
+      let bgImage = new Konva.Image({
+        x: 0,
+        y: 0,
+        image: imageObj,
+        opacity: 1,
+        globalCompositeOperation: 'destination-over'
+      });
+
+      this.layerRef.add(bgImage);
+      this.layerRef.draw();
+
+      this.setState({ opacity: 1 }, () => {
+        setTimeout(() => {
+          let dataURL = this.stageRef.toDataURL();
+          this.downloadURI(dataURL, 'stage.png');
+        }, 100);
+      });
+    };
   }
 
   _downloadURI(url, name) {
