@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import Konva from 'konva';
 import { Stage, Layer, Line, Image, Text } from 'react-konva';
@@ -29,6 +30,9 @@ class App extends Component {
     this.onImgSelect = this._onImgSelect.bind(this);
     this.onStageClick = this._onStageClick.bind(this);
     this.renderDots = this._renderDots.bind(this);
+    this.renderText = this._renderText.bind(this);
+    this.onTextChange = this._onTextChange.bind(this);
+    this.onTextEnter = this._onTextEnter.bind(this);
     this.onUndo = this._onUndo.bind(this);
     this.onRedo = this._onRedo.bind(this);
     this.onShowImgBox = this._onShowImgBox.bind(this);
@@ -41,12 +45,14 @@ class App extends Component {
       lines: [],
       eraseImgs: [],
       dots: [],
-      opacity: 1,
-      posX: 0,
-      posY: 0,
+      texts: [],
+      text: '',
+      tX: 0,
+      tY: 0,
       isDrawing: false,
       isErasing: false,
       toolState: 0, // 0.點點 1.筆刷 2.文字 3.選色 4.橡皮擦
+      isShowText: false,
       isShowImgSelectBox: false,
       historyStep: 0,
       history: [],
@@ -68,9 +74,13 @@ class App extends Component {
     const {
       toolState,
       dots,
-      isShowImgSelectBox,
       lines,
-      eraseImgs
+      eraseImgs,
+      texts,
+      isShowImgSelectBox,
+      isShowText,
+      tX,
+      tY
     } = this.state;
     return (
       <div className="App">
@@ -144,23 +154,31 @@ class App extends Component {
                 </div>
               </div>
             </TopTools>
-            <Stage
-              ref={node => {
-                this.stageRef = node;
-              }}
-              width={800}
-              height={600}
-              onMouseDown={this.onMouseDown}
-              onMouseMove={this.onMouseMove}
-              onMouseUp={this.onMouseUp}
-              onClick={this.onStageClick}
-            >
-              <Layer
-                ref={node => {
-                  this.layerRef = node;
-                }}
+
+            <div style={{ position: 'relative' }}>
+              {toolState === 2 && isShowText ? (
+                <Textarea
+                  ref={el => (this.textRef = el)}
+                  left={tX}
+                  top={tY}
+                  onChange={this.onTextChange}
+                  onKeyPress={this.onTextEnter}
+                />
+              ) : null}
+              <Stage
+                ref={node => (this.stageRef = node)}
+                width={800}
+                height={600}
+                onMouseDown={this.onMouseDown}
+                onMouseUp={this.onMouseUp}
+                onMouseMove={this.onMouseMove}
+                onTouchStart={this.onMouseDown}
+                onTouchEnd={this.onMouseUp}
+                onTouchMove={this.onMouseMove}
+                onClick={this.onStageClick}
               >
-                {/* {imgurl !== '' ? (
+                <Layer ref={node => (this.layerRef = node)}>
+                  {/* {imgurl !== '' ? (
                   <SelectedImage
                     posX={0}
                     posY={0}
@@ -169,42 +187,55 @@ class App extends Component {
                   />
                 ) : null} */}
 
-                {dots.length > 0
-                  ? dots.map((dot, index) => {
-                      return this.renderDots(dot, index);
-                    })
-                  : null}
+                  {dots.length > 0
+                    ? dots.map((dot, index) => {
+                        return this.renderDots(dot, index);
+                      })
+                    : null}
 
-                {lines.length > 0
-                  ? lines.map((line, index) => (
-                      <Line
-                        key={'line' + index}
-                        lineJoin="round"
-                        lineCap="round"
-                        strokeWidth={5}
-                        points={line}
-                        stroke="gold"
-                      />
-                    ))
-                  : null}
+                  {lines.length > 0
+                    ? lines.map((line, index) => (
+                        <Line
+                          key={'line' + index}
+                          lineJoin="round"
+                          lineCap="round"
+                          strokeWidth={5}
+                          points={line}
+                          stroke="gold"
+                        />
+                      ))
+                    : null}
 
-                {eraseImgs.length > 0
-                  ? eraseImgs.map((img, index) => (
-                      <Image
-                        key={'img' + index}
-                        ref={node => (this.imageRef = node)}
-                        x={img.x}
-                        y={img.y}
-                        width={10}
-                        height={10}
-                        stroke="blue"
-                        fill="red"
-                        globalCompositeOperation="destination-out"
-                      />
-                    ))
-                  : null}
-              </Layer>
-            </Stage>
+                  {texts.length > 0
+                    ? texts.map((t, index) => (
+                        <Text
+                          key={'text-' + index}
+                          x={t.posX}
+                          y={t.posY}
+                          text={t.text}
+                          fontSize={16}
+                        />
+                      ))
+                    : null}
+
+                  {eraseImgs.length > 0
+                    ? eraseImgs.map((img, index) => (
+                        <Image
+                          key={'img' + index}
+                          ref={node => (this.imageRef = node)}
+                          x={img.x}
+                          y={img.y}
+                          width={10}
+                          height={10}
+                          stroke="blue"
+                          fill="red"
+                          globalCompositeOperation="destination-out"
+                        />
+                      ))
+                    : null}
+                </Layer>
+              </Stage>
+            </div>
           </div>
         </StageContainer>
       </div>
@@ -214,6 +245,8 @@ class App extends Component {
   _renderDots(dot, index) {
     return <CircleDot key={'dot-' + index} posX={dot.posX} posY={dot.posY} />;
   }
+
+  _renderText(text, index) {}
 
   _onMouseMove(ele) {
     let { toolState, isDrawing, isErasing, lines, eraseImgs } = this.state;
@@ -280,12 +313,30 @@ class App extends Component {
   _onStageClick(ele) {
     let { toolState, dots } = this.state;
     let dot = {};
+    let posX = ele.evt.offsetX,
+      posY = ele.evt.offsetY;
     if (toolState === 0) {
-      dot = { posX: ele.evt.offsetX, posY: ele.evt.offsetY };
+      dot = { posX: posX, posY: posY };
       dots = [...dots, dot];
+    } else if (toolState === 2) {
+      this.setState({ isShowText: true, tX: posX, tY: posY }, () =>
+        this.textRef.focus()
+      );
     }
 
     this.setState({ dots });
+  }
+
+  _onTextChange(event) {
+    this.setState({ text: event.target.value });
+  }
+
+  _onTextEnter(event) {
+    if (event.key === 'Enter') {
+      let { texts, tX, tY, text } = this.state;
+      texts = [...texts, { text: text, posX: tX + 6, posY: tY + 9 }];
+      this.setState({ texts, isShowText: false, tX: 0, tY: 0 });
+    }
   }
 
   _onUndo() {}
@@ -386,6 +437,21 @@ const TopTools = styled.div`
       background-color: #ddd;
     }
   }
+`;
+
+const Textarea = styled.textarea`
+  padding: 5px;
+  font-size: 16px;
+  line-height: 20px;
+  color: ${props => (props.color ? props.color : 'black')};
+  position: absolute;
+  z-index: 10;
+  background-color: transparent;
+  left: ${props => (props.left ? props.left + 'px' : 0)};
+  top: ${props => (props.top ? props.top + 'px' : 0)};
+  border: 1px solid #007fff;
+  border-radius: 3px;
+  resize: none;
 `;
 
 export default App;
