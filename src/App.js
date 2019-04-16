@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
 import styled from 'styled-components';
 import Konva from 'konva';
 import { Stage, Layer, Line, Image, Text } from 'react-konva';
@@ -20,6 +19,18 @@ import {
   FaTrashAlt
 } from 'react-icons/fa';
 
+const colorSet = {
+  red: '#E83015',
+  blue: '#005CAF',
+  yellow: '#FFC408',
+  orange: '#F05E1C',
+  green: '#1B813E',
+  purple: '#6F3381',
+  white: '#ffffff',
+  gray: '#707C74',
+  black: '#000000'
+};
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -29,10 +40,9 @@ class App extends Component {
     this.onToolChange = this._onToolChange.bind(this);
     this.onImgSelect = this._onImgSelect.bind(this);
     this.onStageClick = this._onStageClick.bind(this);
-    this.renderDots = this._renderDots.bind(this);
-    this.renderText = this._renderText.bind(this);
     this.onTextChange = this._onTextChange.bind(this);
     this.onTextEnter = this._onTextEnter.bind(this);
+    this.onColorSelect = this._onColorSelect.bind(this);
     this.onUndo = this._onUndo.bind(this);
     this.onRedo = this._onRedo.bind(this);
     this.onShowImgBox = this._onShowImgBox.bind(this);
@@ -43,12 +53,14 @@ class App extends Component {
 
     this.state = {
       lines: [],
+      lineColors: [],
       eraseImgs: [],
       dots: [],
       texts: [],
       text: '',
       tX: 0,
       tY: 0,
+      color: 'red',
       isDrawing: false,
       isErasing: false,
       toolState: 0, // 0.點點 1.筆刷 2.文字 3.選色 4.橡皮擦
@@ -75,12 +87,14 @@ class App extends Component {
       toolState,
       dots,
       lines,
+      lineColors,
       eraseImgs,
       texts,
       isShowImgSelectBox,
       isShowText,
       tX,
-      tY
+      tY,
+      color
     } = this.state;
     return (
       <div className="App">
@@ -130,7 +144,61 @@ class App extends Component {
                 >
                   <FaPalette />
                 </div>
+                {toolState === 3 ? (
+                  <ColorSelectWrapper>
+                    <ColorSelect
+                      color={colorSet.red}
+                      isSelected={color === 'red'}
+                      onClick={() => this.onColorSelect('red')}
+                    />
+                    <ColorSelect
+                      color={colorSet.orange}
+                      isSelected={color === 'orange'}
+                      onClick={() => this.onColorSelect('orange')}
+                    />
+                    <ColorSelect
+                      color={colorSet.yellow}
+                      isSelected={color === 'yellow'}
+                      onClick={() => this.onColorSelect('yellow')}
+                    />
+                    <ColorSelect
+                      color={colorSet.green}
+                      isSelected={color === 'green'}
+                      onClick={() => this.onColorSelect('green')}
+                    />
+                    <ColorSelect
+                      color={colorSet.blue}
+                      isSelected={color === 'blue'}
+                      onClick={() => this.onColorSelect('blue')}
+                    />
+                    <ColorSelect
+                      color={colorSet.purple}
+                      isSelected={color === 'purple'}
+                      onClick={() => this.onColorSelect('purple')}
+                    />
+                    <ColorSelect
+                      color={colorSet.gray}
+                      isSelected={color === 'gray'}
+                      onClick={() => this.onColorSelect('gray')}
+                    />
+                    <ColorSelect
+                      color={colorSet.white}
+                      isSelected={color === 'white'}
+                      onClick={() => this.onColorSelect('white')}
+                    />
+                    <ColorSelect
+                      color={colorSet.black}
+                      isSelected={color === 'black'}
+                      onClick={() => this.onColorSelect('black')}
+                    />
+                  </ColorSelectWrapper>
+                ) : (
+                  <ColorSelectWrapper>
+                    <ColorShow color={color} />
+                  </ColorSelectWrapper>
+                )}
               </div>
+
               <div className="right">
                 <div className="icon-wrapper" onClick={this.onAllClear}>
                   <FaTrashAlt />
@@ -161,6 +229,7 @@ class App extends Component {
                   ref={el => (this.textRef = el)}
                   left={tX}
                   top={tY}
+                  color={color}
                   onChange={this.onTextChange}
                   onKeyPress={this.onTextEnter}
                 />
@@ -188,9 +257,14 @@ class App extends Component {
                 ) : null} */}
 
                   {dots.length > 0
-                    ? dots.map((dot, index) => {
-                        return this.renderDots(dot, index);
-                      })
+                    ? dots.map((dot, index) => (
+                        <CircleDot
+                          key={'dot-' + index}
+                          posX={dot.posX}
+                          posY={dot.posY}
+                          color={color}
+                        />
+                      ))
                     : null}
 
                   {lines.length > 0
@@ -201,7 +275,7 @@ class App extends Component {
                           lineCap="round"
                           strokeWidth={5}
                           points={line}
-                          stroke="gold"
+                          stroke={lineColors[index]}
                         />
                       ))
                     : null}
@@ -213,6 +287,7 @@ class App extends Component {
                           x={t.posX}
                           y={t.posY}
                           text={t.text}
+                          fill={t.color}
                           fontSize={16}
                         />
                       ))
@@ -242,14 +317,28 @@ class App extends Component {
     );
   }
 
-  _renderDots(dot, index) {
-    return <CircleDot key={'dot-' + index} posX={dot.posX} posY={dot.posY} />;
+  _onMouseDown() {
+    let { toolState, lines, lineColors, color } = this.state;
+    if (toolState === 1) {
+      this.setState({
+        isDrawing: true,
+        lines: [...lines, []],
+        lineColors: [...lineColors, color]
+      });
+    } else if (toolState === 4) {
+      this.setState({ isErasing: true });
+    }
   }
 
-  _renderText(text, index) {}
-
   _onMouseMove(ele) {
-    let { toolState, isDrawing, isErasing, lines, eraseImgs } = this.state;
+    let {
+      toolState,
+      isDrawing,
+      isErasing,
+      lines,
+      eraseImgs,
+      color
+    } = this.state;
     const stage = this.stageRef.getStage();
     const point = stage.getPointerPosition();
 
@@ -260,7 +349,7 @@ class App extends Component {
       let lastLine = lines[lines.length - 1];
       lastLine = lastLine.concat([point.x, point.y]);
       lines.splice(lines.length - 1, 1, lastLine);
-      this.setState({ lines: lines.concat() });
+      this.setState({ lines: lines });
     } else if (toolState === 4) {
       if (!isErasing) {
         return;
@@ -268,15 +357,6 @@ class App extends Component {
       let ersPos = { x: point.x, y: point.y };
       eraseImgs = [...eraseImgs, ersPos];
       this.setState({ eraseImgs });
-    }
-  }
-
-  _onMouseDown() {
-    let { toolState, lines } = this.state;
-    if (toolState === 1) {
-      this.setState({ isDrawing: true, lines: [...lines, []] });
-    } else if (toolState === 4) {
-      this.setState({ isErasing: true });
     }
   }
 
@@ -333,10 +413,17 @@ class App extends Component {
 
   _onTextEnter(event) {
     if (event.key === 'Enter') {
-      let { texts, tX, tY, text } = this.state;
-      texts = [...texts, { text: text, posX: tX + 6, posY: tY + 9 }];
+      let { texts, tX, tY, text, color } = this.state;
+      texts = [
+        ...texts,
+        { text: text, posX: tX + 6, posY: tY + 9, color: color }
+      ];
       this.setState({ texts, isShowText: false, tX: 0, tY: 0 });
     }
+  }
+
+  _onColorSelect(color) {
+    this.setState({ color });
   }
 
   _onUndo() {}
@@ -344,7 +431,7 @@ class App extends Component {
   _onRedo() {}
 
   _onAllClear() {
-    this.setState({ dots: [], lines: [], eraseImgs: [] });
+    this.setState({ dots: [], lines: [], eraseImgs: [], texts: [] });
   }
 
   _onShowImgBox() {
@@ -425,8 +512,11 @@ const TopTools = styled.div`
   border-bottom: 1px solid #e0e0e0;
   display: flex;
   justify-content: space-between;
+  .left,
+  .right {
+    display: flex;
+  }
   .icon-wrapper {
-    display: inline-block;
     text-align: center;
     line-height: 40px;
     height: 40px;
@@ -452,6 +542,29 @@ const Textarea = styled.textarea`
   border: 1px solid #007fff;
   border-radius: 3px;
   resize: none;
+`;
+
+const ColorSelectWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  margin-left: 5px;
+`;
+
+const ColorSelect = styled.div`
+  width: 18px;
+  height: 18px;
+  border: 3px solid #fefefe;
+  box-shadow: 0 0 0 1px ${props => (props.isSelected ? 'blue' : '#aaa')};
+  margin-right: 8px;
+  border-radius: 50%;
+  background-color: ${props => (props.color ? props.color : 'gray')};
+`;
+
+const ColorShow = styled.div`
+  width: 20px;
+  height: 20px;
+  background-color: ${props => props.color};
+  border: 1px solid gray;
 `;
 
 export default App;

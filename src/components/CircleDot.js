@@ -1,31 +1,24 @@
-import React, { Component } from 'react'
+import React, { Component } from 'react';
 import { Circle } from 'react-konva';
 class CircleDot extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
       posX: this.props.posX,
       posY: this.props.posY,
-      fillColor: 'gold'
-    }
+      color: this.props.color
+    };
   }
-  componentDidMount() {
-
-  }
-  componentWillUnmount() {
-  }
-  componentDidUpdate(prevProp, prevState) {
-  }
+  componentDidMount() {}
+  componentWillUnmount() {}
+  componentDidUpdate(prevProp, prevState) {}
   shouldComponentUpdate(newProps, newState) {
-    return this.state !== newState
-
+    return this.state !== newState;
   }
 
   render() {
-    const { posX, posY, fillColor } = this.state;
-    return(
-      <Circle x={posX} y={posY} radius={5} fill={fillColor} />
-    );
+    const { posX, posY, color } = this.state;
+    return <Circle x={posX} y={posY} radius={5} fill={color} />;
   }
 }
-export default CircleDot
+export default CircleDot;
